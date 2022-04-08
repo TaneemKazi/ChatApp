@@ -1,3 +1,4 @@
+import 'package:chatapp/services/auth.dart';
 import 'package:chatapp/widgets/widget.dart';
 import 'package:flutter/material.dart';
 
@@ -10,16 +11,37 @@ class SignUp extends StatefulWidget {
 
 class _SignUpState extends State<SignUp> {
 
+  bool isLoading = false;
+
+  // AuthMethods authMethods = new AuthMethods();
+
+  final formkey = GlobalKey<FormState>();
+
   TextEditingController userNameTextEditingController = new TextEditingController();
   TextEditingController emailTextEditingController = new TextEditingController();
   TextEditingController passwordTextEditingController = new TextEditingController();
 
+  signMeUP(){
+    if(formkey.currentState!.validate()){
+      setState(() {
+        isLoading = true;
+      });
+      // authMethods.signUpWithEmailAndPassword(emailTextEditingController.text,
+      //     passwordTextEditingController.text).then((val) => val
+      //     // print("$val")
+      // );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: appBarMain(context),
-        body: SingleChildScrollView(
+        body: isLoading? Container(
+          child: Center(
+              child: CircularProgressIndicator()
+          ),
+        ) : SingleChildScrollView(
             child: Container(
                 height: MediaQuery.of(context).size.height - 100,
                 alignment: Alignment.bottomCenter,
@@ -28,20 +50,41 @@ class _SignUpState extends State<SignUp> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      TextField(
-                        controller: userNameTextEditingController,
-                        style: simpleTextStyle(),
-                        decoration: textFieldInputDecoration("username"),
-                      ),
-                      TextField(
-                        controller: emailTextEditingController,
-                        style: simpleTextStyle(),
-                        decoration: textFieldInputDecoration("email"),
-                      ),
-                      TextField(
-                        controller: passwordTextEditingController,
-                        style: simpleTextStyle(),
-                        decoration: textFieldInputDecoration("password"),
+                      Form(
+                        key: formkey,
+                        child: Column(
+                          children: [
+                            TextFormField(
+                              validator: (val){
+                                return val!.isEmpty || val.length < 4 ?
+                                "Please Provide a valid User Name" : null;
+                              },
+                              controller: userNameTextEditingController,
+                              style: simpleTextStyle(),
+                              decoration: textFieldInputDecoration("username"),
+                            ),
+                            TextFormField(
+                              validator: (val){
+                                return RegExp(
+                                    r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+                                    .hasMatch(val!) ? null : "Please Provide a valid Email";
+                              },
+                              controller: emailTextEditingController,
+                              style: simpleTextStyle(),
+                              decoration: textFieldInputDecoration("email"),
+                            ),
+                            TextFormField(
+                              obscureText: true,
+                              validator: (val){
+                                return val!.length > 6 ?
+                                null : "Please Provide Password (6-8 Characters)";
+                              },
+                              controller: passwordTextEditingController,
+                              style: simpleTextStyle(),
+                              decoration: textFieldInputDecoration("password"),
+                            ),
+                          ],
+                        ),
                       ),
                       const SizedBox(
                         height: 8,
@@ -59,16 +102,21 @@ class _SignUpState extends State<SignUp> {
                       const SizedBox(
                         height: 8,
                       ),
-                      Container(
-                        alignment: Alignment.center,
-                        width: MediaQuery.of(context).size.width,
-                        padding: const EdgeInsets.symmetric(vertical: 20),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                              colors: [Color(0xff007EF4), Color(0xff2A75BC)]),
-                          borderRadius: BorderRadius.circular(30),
+                      GestureDetector(
+                        onTap: (){
+                          signMeUP();
+                        },
+                        child: Container(
+                          alignment: Alignment.center,
+                          width: MediaQuery.of(context).size.width,
+                          padding: const EdgeInsets.symmetric(vertical: 20),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                                colors: [Color(0xff007EF4), Color(0xff2A75BC)]),
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          child: Text("Sign Up", style: mediumTextStyle()),
                         ),
-                        child: Text("Sign Up", style: mediumTextStyle()),
                       ),
                       const SizedBox(
                         height: 16,

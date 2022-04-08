@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(0xff1F1F1F),
         primarySwatch: Colors.blue,
       ),
-      home: const SignIn(),
+      home: const SignUp(),
     );
   }
 }
