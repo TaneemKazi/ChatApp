@@ -1,9 +1,16 @@
+// ignore_for_file: prefer_const_constructors
+
 import 'package:chatapp/services/auth.dart';
+import 'package:chatapp/services/database.dart';
+import 'package:chatapp/views/chatRoomScreen.dart';
 import 'package:chatapp/widgets/widget.dart';
 import 'package:flutter/material.dart';
 
 class SignUp extends StatefulWidget {
-  const SignUp({Key? key}) : super(key: key);
+  // const SignUp({Key? key}) : super(key: key);
+
+  final Function toggle;
+  SignUp(this.toggle);
 
   @override
   _SignUpState createState() => _SignUpState();
@@ -13,23 +20,35 @@ class _SignUpState extends State<SignUp> {
 
   bool isLoading = false;
 
-  // AuthMethods authMethods = new AuthMethods();
-
+  AuthMethods authMethods = AuthMethods();
+  DatabaseMethods databaseMethods = DatabaseMethods();
   final formkey = GlobalKey<FormState>();
 
-  TextEditingController userNameTextEditingController = new TextEditingController();
-  TextEditingController emailTextEditingController = new TextEditingController();
-  TextEditingController passwordTextEditingController = new TextEditingController();
+  TextEditingController userNameTextEditingController = TextEditingController();
+  TextEditingController emailTextEditingController = TextEditingController();
+  TextEditingController passwordTextEditingController = TextEditingController();
 
-  signMeUP(){
+  signMeUp(){
     if(formkey.currentState!.validate()){
+
+        Map<String, String> userInfoMap = {
+          "name" : userNameTextEditingController.text,
+          "email" : emailTextEditingController.text,
+        };
+
       setState(() {
         isLoading = true;
       });
-      // authMethods.signUpWithEmailAndPassword(emailTextEditingController.text,
-      //     passwordTextEditingController.text).then((val) => val
-      //     // print("$val")
-      // );
+      authMethods.signUpWithEmailAndPassword(emailTextEditingController.text,
+          passwordTextEditingController.text).then((val) {
+            // print("${val.usersId}");
+
+        databaseMethods.uploadUserInfo(userInfoMap);
+
+            Navigator.pushReplacement(context, MaterialPageRoute(
+                builder: (context) => ChatRoom()
+            ));
+          });
     }
   }
 
@@ -46,9 +65,11 @@ class _SignUpState extends State<SignUp> {
                 height: MediaQuery.of(context).size.height - 100,
                 alignment: Alignment.bottomCenter,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  padding: EdgeInsets.symmetric(horizontal: 24),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
+
+                  ///Form Validation<!>
                     children: [
                       Form(
                         key: formkey,
@@ -67,17 +88,16 @@ class _SignUpState extends State<SignUp> {
                               validator: (val){
                                 return RegExp(
                                     r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
-                                    .hasMatch(val!) ? null : "Please Provide a valid Email";
+                                    .hasMatch(val!) ? null : "Please Provide a valid Email Address";
                               },
                               controller: emailTextEditingController,
                               style: simpleTextStyle(),
                               decoration: textFieldInputDecoration("email"),
                             ),
                             TextFormField(
-                              obscureText: true,
+                              obscureText: true,//to make password invisible
                               validator: (val){
-                                return val!.length > 6 ?
-                                null : "Please Provide Password (6-8 Characters)";
+                                return val!.length > 6 ? null : "Please Provide Password (Atleast 6-8 Characters)";
                               },
                               controller: passwordTextEditingController,
                               style: simpleTextStyle(),
@@ -86,56 +106,62 @@ class _SignUpState extends State<SignUp> {
                           ],
                         ),
                       ),
-                      const SizedBox(
+                      SizedBox(
                         height: 8,
                       ),
+
+                  ///Forgot Password?
                       Container(
                           alignment: Alignment.centerRight,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(
+                            padding: EdgeInsets.symmetric(
                                 horizontal: 16, vertical: 8),
                             child: Text(
                               "Forgot Password?",
                               style: simpleTextStyle(),
                             ),
                           )),
-                      const SizedBox(
+                      SizedBox(
                         height: 8,
                       ),
+
+                  ///SignUP for new user!
                       GestureDetector(
                         onTap: (){
-                          signMeUP();
+                          signMeUp();
                         },
                         child: Container(
                           alignment: Alignment.center,
                           width: MediaQuery.of(context).size.width,
-                          padding: const EdgeInsets.symmetric(vertical: 20),
+                          padding: EdgeInsets.symmetric(vertical: 20),
                           decoration: BoxDecoration(
-                            gradient: const LinearGradient(
+                            gradient: LinearGradient(
                                 colors: [Color(0xff007EF4), Color(0xff2A75BC)]),
                             borderRadius: BorderRadius.circular(30),
                           ),
                           child: Text("Sign Up", style: mediumTextStyle()),
                         ),
                       ),
-                      const SizedBox(
+                      SizedBox(
                         height: 16,
                       ),
                       Container(
                         alignment: Alignment.center,
                         width: MediaQuery.of(context).size.width,
-                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        padding: EdgeInsets.symmetric(vertical: 20),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(30),
                         ),
-                        child: const Text("Sign Up With Google",
+                        child: Text("Sign Up With Google",
                             style:
                                 TextStyle(color: Colors.black, fontSize: 17)),
                       ),
-                      const SizedBox(
+                      SizedBox(
                         height: 16,
                       ),
+
+                  ///Existing User SignIn >>>
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -143,17 +169,25 @@ class _SignUpState extends State<SignUp> {
                             "Already have an account? ",
                             style: mediumTextStyle(),
                           ),
-                          const Text(
-                            "Sign In Now",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 17,
-                              decoration: TextDecoration.underline,
+                          GestureDetector(
+                            onTap: (){
+                              widget.toggle();
+                            },
+                            child: Container(
+                              padding: EdgeInsets.symmetric(vertical: 8),
+                              child: Text(
+                                "Sign In Now",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 17,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
                             ),
                           )
                         ],
                       ),
-                      const SizedBox(
+                      SizedBox(
                         height: 50,
                       ),
                     ],
