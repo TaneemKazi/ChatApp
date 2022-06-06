@@ -1,7 +1,6 @@
 # chatapp
 
 A new Chat App using Flutter.
-A new Flutter project.
 
 ### Sign-In Page
 
